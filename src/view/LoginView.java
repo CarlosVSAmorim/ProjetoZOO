@@ -5,33 +5,47 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 
 public class LoginView {
-    private JFrame frame;
+    public JFrame frame;
     private JTextField usernameField;
     private JPasswordField passwordField;
     private JButton loginButton;
     private JButton registerButton;
 
     public LoginView() {
-        frame = new JFrame("Login");
+        frame = new JFrame("Login - Sistema Zoológico");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(300, 150);
-        frame.setLayout(new GridLayout(4, 2));
+        frame.setSize(350, 200);
+        frame.setLayout(new GridLayout(3, 2, 10, 10));
 
-        frame.add(new JLabel("Usuário:"));
+        // Adicionar padding
+        JPanel mainPanel = new JPanel(new GridLayout(3, 2, 10, 10));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
+
+        mainPanel.add(new JLabel("Usuário:"));
         usernameField = new JTextField();
-        frame.add(usernameField);
+        mainPanel.add(usernameField);
 
-        frame.add(new JLabel("Senha:"));
+        mainPanel.add(new JLabel("Senha:"));
         passwordField = new JPasswordField();
-        frame.add(passwordField);
+        mainPanel.add(passwordField);
 
         loginButton = new JButton("Login");
-        frame.add(loginButton);
-
         registerButton = new JButton("Registrar");
-        frame.add(registerButton);
 
-        frame.setVisible(true);
+        // Estilizar botões
+        Font buttonFont = new Font("Arial", Font.BOLD, 12);
+        loginButton.setFont(buttonFont);
+        registerButton.setFont(buttonFont);
+
+        mainPanel.add(loginButton);
+        mainPanel.add(registerButton);
+
+        frame.add(mainPanel);
+        frame.setLocationRelativeTo(null);
+    }
+
+    public void setVisible(boolean visible) {
+        frame.setVisible(visible);
     }
 
     public String getUsername() {
@@ -42,15 +56,16 @@ public class LoginView {
         return new String(passwordField.getPassword());
     }
 
+    public void clearFields() {
+        usernameField.setText("");
+        passwordField.setText("");
+    }
+
     public void addLoginListener(ActionListener listener) {
         loginButton.addActionListener(listener);
     }
 
     public void addRegisterListener(ActionListener listener) {
         registerButton.addActionListener(listener);
-    }
-
-    public void close() {
-        frame.dispose();
     }
 }

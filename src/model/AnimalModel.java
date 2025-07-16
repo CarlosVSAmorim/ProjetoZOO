@@ -4,95 +4,118 @@ import java.sql.*;
 
 public class AnimalModel {
     private Connection connection;
+    private final String DB_URL = "jdbc:sqlite:zoo.db";
 
     public AnimalModel() {
         try {
-            connection = DriverManager.getConnection("jdbc:sqlite:zoologico.db");
-            Statement stmt = connection.createStatement();
-            stmt.execute("CREATE TABLE IF NOT EXISTS animals (id INTEGER PRIMARY KEY, name TEXT, species TEXT)");
-            stmt.execute("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT, password TEXT)");
+            connection = DriverManager.getConnection(DB_URL);
+            createTables();
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println("Erro ao conectar com o banco de dados: " + e.getMessage());
         }
     }
 
-    // CRUD para Animais
+    private void createTables() {
+        String animalTable = """
+            CREATE TABLE IF NOT EXISTS animals (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                species TEXT NOT NULL
+            )
+            """;
+
+        String userTable = """
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT UNIQUE NOT NULL,
+                password TEXT NOT NULL
+            )
+            """;
+
+        try (Statement stmt = connection.createStatement()) {
+            stmt.execute(animalTable);
+            stmt.execute(userTable);
+        } catch (SQLException e) {
+            System.err.println("Erro ao criar tabelas: " + e.getMessage());
+        }
+    }
+
     public void addAnimal(String name, String species) {
-        try {
-            PreparedStatement pstmt = connection.prepareStatement("INSERT INTO animals (name, species) VALUES (?, ?)");
+        String sql = "INSERT INTO animals (name, species) VALUES (?, ?)";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, name);
             pstmt.setString(2, species);
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public ResultSet getAnimals() {
-        try {
-            Statement stmt = connection.createStatement();
-            return stmt.executeQuery("SELECT * FROM animals");
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
+            System.err.println("Erro ao adicionar animal: " + e.getMessage());
         }
     }
 
     public void updateAnimal(int id, String name, String species) {
-        try {
-            PreparedStatement pstmt = connection.prepareStatement("UPDATE animals SET name = ?, species = ? WHERE id = ?");
+        String sql = "UPDATE animals SET name = ?, species = ? WHERE id = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, name);
             pstmt.setString(2, species);
             pstmt.setInt(3, id);
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println("Erro ao atualizar animal: " + e.getMessage());
         }
     }
 
     public void removeAnimal(int id) {
-        try {
-            PreparedStatement pstmt = connection.prepareStatement("DELETE FROM animals WHERE id = ?");
+        String sql = "DELETE FROM animals WHERE id = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setInt(1, id);
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println("Erro ao remover animal: " + e.getMessage());
         }
     }
 
-    // CRUD para Usuários
-    public boolean authenticate(String username, String password) {
+    public ResultSet getAnimals() {
+        String sql = "SELECT * FROM animals ORDER BY id";
         try {
-            PreparedStatement pstmt = connection.prepareStatement("SELECT * FROM users WHERE username = ? AND password = ?");
-            pstmt.setString(1, username);
-            pstmt.setString(2, password);
-            ResultSet rs = pstmt.executeQuery();
-            return rs.next(); // Retorna true se o usuário for encontrado
+            Statement stmt = connection.createStatement();
+            return stmt.executeQuery(sql);
         } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
+            System.err.println("Erro ao buscar animais: " + e.getMessage());
+            return null;
         }
     }
 
-    public void registerUser (String username, String password) {
+    public ResultSet generateReport() {
+        String sql = "SELECT * FROM animals ORDER BY species, name";
         try {
-            PreparedStatement pstmt = connection.prepareStatement("INSERT INTO users (username, password) VALUES (?, ?)");
+            Statement stmt = connection.createStatement();
+            return stmt.executeQuery(sql);
+        } catch (SQLException e) {
+            System.err.println("Erro ao gerar relatório: " + e.getMessage());
+            return null;
+        }
+    }
+
+    public void registerUser(String username, String password) {
+        String sql = "INSERT INTO users (username, password) VALUES (?, ?)";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, username);
             pstmt.setString(2, password);
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println("Erro ao registrar usuário: " + e.getMessage());
         }
     }
 
-    // Método para gerar relatório de animais
-    public ResultSet generateReport() {
-        try {
-            Statement stmt = connection.createStatement();
-            return stmt.executeQuery("SELECT * FROM animals");
+    public boolean authenticate(String username, String password) {
+        String sql = "SELECT * FROM users WHERE username = ? AND password = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, username);
+            pstmt.setString(2, password);
+            ResultSet rs = pstmt.executeQuery();
+            return rs.next();
         } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
+            System.err.println("Erro ao autenticar usuário: " + e.getMessage());
+            return false;
         }
     }
 }
