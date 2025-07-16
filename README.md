@@ -2,36 +2,55 @@
 
 ProjetoZOO é um sistema de gerenciamento de zoológico desenvolvido em Java, utilizando Swing para a interface gráfica e SQLite para persistência de dados. O sistema permite gerenciar animais, usuários e cuidadores, além de gerar relatórios.
 
-### Funcionalidades
 
-*   **Gerenciamento de Animais:**
-    *   Adicionar novos animais (nome, espécie).
-    *   Atualizar informações de animais existentes.
-    *   Remover animais.
-    *   Visualizar lista de animais cadastrados.
-    *   Gerar relatório de animais.
-*   **Gerenciamento de Usuários:**
-    *   Registrar novos usuários (username, password).
-    *   Atualizar informações de usuários existentes.
-    *   Remover usuários.
-    *   Visualizar lista de usuários cadastrados.
-    *   Gerar relatório de usuários.
-    *   Autenticação de login com usuário padrão `admin` e senha `123`.
-*   **Gerenciamento de Cuidadores:**
-    *   Adicionar novos cuidadores (nome, CPF, telefone, email, especialidade, salário, data de contratação).
-    *   Atualizar informações de cuidadores existentes.
-    *   Remover cuidadores.
-    *   Visualizar lista de cuidadores cadastrados.
-    *   Gerar relatório de cuidadores com resumo de folha de pagamento.
-    *   Validações para CPF (11 dígitos numéricos), data de contratação (não futura) e email.
-*   **Relatórios:**
-    *   Geração de relatórios específicos para Animais, Usuários e Cuidadores.
-    *   Geração de um relatório geral consolidado.
-    *   Funcionalidade de exportar relatórios para arquivo de texto.
-*   **Navegação:**
-    *   Menu principal para acesso às diferentes seções de gerenciamento.
-    *   Botões de "Voltar ao Menu" em todas as telas de gerenciamento.
-    *   Funcionalidades de Logout e Sair da Aplicação.
+![Tela Inicial](<img width="1919" height="226" alt="image" src="https://github.com/user-attachments/assets/ffba5ac8-28d3-493c-9ce6-afd12389cb8e" />)
+
+---
+
+## 🐾 Funcionalidades
+
+### 📋 Gerenciamento de Animais
+- Adicionar novos animais (nome, espécie)
+- Atualizar informações de animais existentes
+- Remover animais
+- Visualizar lista de animais cadastrados
+- Gerar relatório de animais
+
+![Tela de Animais](imgs/tela_animais.png)
+
+### 👤 Gerenciamento de Usuários
+- Registrar novos usuários (username, password)
+- Atualizar informações de usuários existentes
+- Remover usuários
+- Visualizar lista de usuários cadastrados
+- Gerar relatório de usuários
+- Autenticação com usuário padrão `admin` e senha `123`
+
+![Tela de Usuários](imgs/tela_usuarios.png)
+
+### 👷 Gerenciamento de Cuidadores
+- Adicionar novos cuidadores (nome, CPF, telefone, email, especialidade, salário, data de contratação)
+- Atualizar informações de cuidadores existentes
+- Remover cuidadores
+- Visualizar lista de cuidadores cadastrados
+- Gerar relatório com resumo da folha de pagamento
+- Validações: CPF, data futura e email
+
+![Tela de Cuidadores](imgs/tela_cuidadores.png)
+
+### 📑 Relatórios
+- Geração de relatórios específicos para Animais, Usuários e Cuidadores
+- Relatório geral consolidado
+- Exportação dos relatórios para arquivo `.txt`
+
+![Relatório](imgs/tela_relatorio.png)
+
+### 🔁 Navegação
+- Menu principal para acesso às seções de gerenciamento
+- Botões "Voltar ao Menu" em todas as telas
+- Funcionalidade de logout e sair da aplicação
+
+![Menu Principal](imgs/menu_principal.png)
 
 ### Estrutura do Projeto
 
