@@ -115,7 +115,3 @@ O banco de dados SQLite (`zoo.db`) será criado automaticamente na primeira exec
 ### Contribuição
 
 Sinta-se à vontade para fazer um fork do projeto, propor melhorias e enviar pull requests.
-
-### Licença
-
-Este projeto está licenciado sob a [MIT License](LICENSE).
