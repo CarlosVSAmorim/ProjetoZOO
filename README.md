@@ -3,7 +3,7 @@
 ProjetoZOO é um sistema de gerenciamento de zoológico desenvolvido em Java, utilizando Swing para a interface gráfica e SQLite para persistência de dados. O sistema permite gerenciar animais, usuários e cuidadores, além de gerar relatórios.
 
 
-![Tela Inicial](<img width="1919" height="226" alt="image" src="https://github.com/user-attachments/assets/ffba5ac8-28d3-493c-9ce6-afd12389cb8e" />)
+![Tela Inicial](https://i.imgur.com/sVsxejp.png)
 
 ---
 
