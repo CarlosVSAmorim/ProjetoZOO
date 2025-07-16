@@ -1,0 +1,153 @@
+@startuml
+!theme plain
+skinparam classAttributeIconSize 0
+skinparam packageStyle rect
+
+package "Model" {
+  class AnimalModel {
+    - connection: Connection
+    - DB_URL: String
+    + addAnimal(name, species)
+    + updateAnimal(id, name, species)
+    + removeAnimal(id)
+    + getAnimals(): ResultSet
+    + generateReport(): ResultSet
+    + registerUser(username, password)
+    + authenticate(username, password): boolean
+  }
+  class UserModel {
+    - connection: Connection
+    - DB_URL: String
+    + registerUser(username, password)
+    + updateUser(id, username, password)
+    + removeUser(id)
+    + getUsers(): ResultSet
+    + authenticate(username, password): boolean
+  }
+  class CuidadorModel {
+    - connection: Connection
+    - DB_URL: String
+    + addCuidador(...)
+    + updateCuidador(...)
+    + removeCuidador(id)
+    + getCuidador(): ResultSet
+    + generateCuidadorReport(): ResultSet
+  }
+  class Database {
+    - connection: Connection
+    + getConnection(): Connection
+  }
+}
+
+package "View" {
+  class AnimalView
+  class UserView
+  class CuidadorView
+  class MenuView
+  class LoginView
+  class RegisterView
+  class ReportView
+}
+
+package "Controller" {
+  class AnimalController {
+    - model: AnimalModel
+    - animalView: AnimalView
+    - loginView: LoginView
+    - registerView: RegisterView
+    - reportView: ReportView
+    - menuView: MenuView
+    + updateAnimalArea()
+    + generateReport()
+  }
+  class UserController {
+    - model: UserModel
+    - userView: UserView
+    - menuView: MenuView
+    + updateUserArea()
+  }
+  class CuidadorController {
+    - model: CuidadorModel
+    - cuidadorView: CuidadorView
+    - menuView: MenuView
+    - reportView: ReportView
+    + updateCuidadorArea()
+    + generateReport()
+  }
+  class MenuController {
+    - menuView: MenuView
+    - animalView: AnimalView
+    - userView: UserView
+    - cuidadorView: CuidadorView
+    - reportView: ReportView
+    - loginView: LoginView
+    - animalController: AnimalController
+    - userController: UserController
+    - cuidadorController: CuidadorController
+    + showMainMenu()
+    + showAnimalMenu()
+    + showUserMenu()
+    + showCuidadorMenu()
+    + showReportMenu()
+    + start()
+  }
+}
+
+class Main {
+  + main(args)
+}
+
+' --- Relações ---
+
+' Main instancia os componentes principais
+Main ..> AnimalModel : <<creates>>
+Main ..> UserModel : <<creates>>
+Main ..> AnimalView : <<creates>>
+Main ..> UserView : <<creates>>
+Main ..> ReportView : <<creates>>
+Main ..> MenuView : <<creates>>
+Main ..> LoginView : <<creates>>
+Main ..> RegisterView : <<creates>>
+Main ..> AnimalController : <<creates>>
+Main ..> UserController : <<creates>>
+Main ..> MenuController : <<creates>>
+
+' MenuController orquestra as Views e Controllers
+MenuController --> MenuView
+MenuController --> AnimalView
+MenuController --> UserView
+MenuController --> CuidadorView
+MenuController --> ReportView
+MenuController --> LoginView
+MenuController ..> AnimalController : <<uses>>
+MenuController ..> UserController : <<uses>>
+MenuController ..> CuidadorController : <<uses>>
+
+
+' Relações MVC
+AnimalController --> AnimalModel : <<uses>>
+AnimalController ..> AnimalView : <<updates>>
+AnimalController ..> ReportView : <<updates>>
+AnimalController ..> LoginView
+AnimalController ..> RegisterView
+
+UserController --> UserModel : <<uses>>
+UserController ..> UserView : <<updates>>
+UserController ..> MenuView
+
+CuidadorController --> CuidadorModel : <<uses>>
+CuidadorController ..> CuidadorView : <<updates>>
+CuidadorController ..> ReportView : <<updates>>
+
+' Models e o banco de dados (conceitual)
+database "zoo.db" {
+}
+AnimalModel -- database
+UserModel -- database
+CuidadorModel -- database
+
+' O arquivo Database.java parece não ser utilizado pelos Models principais,
+' que se conectam diretamente ao "zoo.db".
+' Database ..> "zoologico.db"
+
+@enduml

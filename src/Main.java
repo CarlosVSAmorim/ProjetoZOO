@@ -1,24 +1,26 @@
 import controller.AnimalController;
 import controller.UserController;
+import controller.CuidadorController;
 import controller.MenuController;
 import model.AnimalModel;
 import model.UserModel;
+import model.CuidadorModel; // Importar CuidadorModel
 import view.*;
 
 import javax.swing.*;
 
 public class Main {
     public static void main(String[] args) {
-        // Tentar aplicar o visual do sistema operacional
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception e) {
             System.out.println("Não foi possível aplicar o Look and Feel do sistema.");
         }
 
-        // Inicializar os modelos
+        // Inicializar os modelos (agora CuidadorModel também interage com DB)
         AnimalModel animalModel = new AnimalModel();
         UserModel userModel = new UserModel();
+        CuidadorModel cuidadorModel = new CuidadorModel(); // Instanciar CuidadorModel para gerenciar DB
 
         // Inicializar as views
         LoginView loginView = new LoginView();
@@ -27,19 +29,20 @@ public class Main {
         UserView userView = new UserView();
         ReportView reportView = new ReportView();
         MenuView menuView = new MenuView();
+        CuidadorView cuidadorView = new CuidadorView();
 
         // Inicializar os controllers
-        AnimalController animalController = new AnimalController(
-                animalModel, animalView, loginView, registerView, reportView, menuView
-        );
-        UserController userController = new UserController(userModel, userView);
-        MenuController menuController = new MenuController(
-                menuView, animalView, userView, reportView, loginView, animalController, userController);
+        AnimalController animalController = new AnimalController(animalModel, animalView, reportView);
+        UserController userController = new UserController(userModel, userView, reportView);
+        CuidadorController cuidadorController = new CuidadorController(cuidadorModel, cuidadorView, reportView);
 
-        // Conectar o MenuView ao UserController
-        userController.setMenuView(menuView);
+        // Inicializar MenuController com todos os componentes necessários
+        MenuController menuController = new MenuController(
+                menuView, animalView, userView, cuidadorView, reportView, loginView,
+                animalController, userController, cuidadorController
+        );
 
         // Iniciar com a tela de login
-        SwingUtilities.invokeLater(() -> loginView.setVisible(true));
+        SwingUtilities.invokeLater(() -> menuController.start());
     }
 }

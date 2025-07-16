@@ -9,16 +9,16 @@ public class LoginView {
     private JTextField usernameField;
     private JPasswordField passwordField;
     private JButton loginButton;
-    private JButton registerButton;
+    private JButton exitButton; // Novo botão de saída
 
     public LoginView() {
         frame = new JFrame("Login - Sistema Zoológico");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(350, 200);
-        frame.setLayout(new GridLayout(3, 2, 10, 10));
+        frame.setSize(350, 250); // Aumentado para acomodar o novo botão
+        frame.setLayout(new GridLayout(4, 2, 10, 10)); // Alterado para 4 linhas
 
         // Adicionar padding
-        JPanel mainPanel = new JPanel(new GridLayout(3, 2, 10, 10));
+        JPanel mainPanel = new JPanel(new GridLayout(4, 2, 10, 10));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
 
         mainPanel.add(new JLabel("Usuário:"));
@@ -30,15 +30,15 @@ public class LoginView {
         mainPanel.add(passwordField);
 
         loginButton = new JButton("Login");
-        registerButton = new JButton("Registrar");
+        exitButton = new JButton("Sair"); // Novo botão
 
         // Estilizar botões
         Font buttonFont = new Font("Arial", Font.BOLD, 12);
         loginButton.setFont(buttonFont);
-        registerButton.setFont(buttonFont);
+        exitButton.setFont(buttonFont); // Aplicar fonte ao novo botão
 
         mainPanel.add(loginButton);
-        mainPanel.add(registerButton);
+        mainPanel.add(exitButton); // Adicionar o botão de saída
 
         frame.add(mainPanel);
         frame.setLocationRelativeTo(null);
@@ -65,7 +65,18 @@ public class LoginView {
         loginButton.addActionListener(listener);
     }
 
-    public void addRegisterListener(ActionListener listener) {
-        registerButton.addActionListener(listener);
+
+    // Novo método para adicionar listener ao botão de saída
+    public void addExitListener(ActionListener listener) {
+        exitButton.addActionListener(listener);
+    }
+
+    // Métodos para exibir mensagens
+    public void showMessage(String message) {
+        JOptionPane.showMessageDialog(frame, message, "Informação", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    public void showError(String message) {
+        JOptionPane.showMessageDialog(frame, message, "Erro", JOptionPane.ERROR_MESSAGE);
     }
 }

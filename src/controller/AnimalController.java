@@ -12,63 +12,19 @@ import java.sql.SQLException;
 public class AnimalController {
     private AnimalModel model;
     private AnimalView animalView;
-    private LoginView loginView;
-    private RegisterView registerView;
+    // Removido LoginView, RegisterView, MenuView do construtor do AnimalController
+    // A responsabilidade de transição de tela e autenticação é do MenuController/LoginController
     private ReportView reportView;
-    private MenuView menuView;
 
-    public AnimalController(AnimalModel model, AnimalView animalView, LoginView loginView,
-                            RegisterView registerView, ReportView reportView, MenuView menuView) {
+    public AnimalController(AnimalModel model, AnimalView animalView, ReportView reportView) {
         this.model = model;
         this.animalView = animalView;
-        this.loginView = loginView;
-        this.registerView = registerView;
         this.reportView = reportView;
-        this.menuView = menuView;
 
         setupListeners();
     }
 
     private void setupListeners() {
-        // Login
-        loginView.addLoginListener(e -> {
-            String username = loginView.getUsername();
-            String password = loginView.getPassword();
-            if (model.authenticate(username, password)) {
-                loginView.setVisible(false);
-                menuView.setVisible(true);
-                JOptionPane.showMessageDialog(null, "Login realizado com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
-            } else {
-                JOptionPane.showMessageDialog(loginView.frame, "Usuário ou senha inválidos!", "Erro", JOptionPane.ERROR_MESSAGE);
-            }
-        });
-
-        // Registro
-        loginView.addRegisterListener(e -> {
-            loginView.setVisible(false);
-            registerView.setVisible(true);
-        });
-
-        registerView.addRegisterListener(e -> {
-            String username = registerView.getUsername();
-            String password = registerView.getPassword();
-
-            if (username.trim().isEmpty() || password.trim().isEmpty()) {
-                JOptionPane.showMessageDialog(registerView.frame, "Usuário e senha são obrigatórios!", "Erro", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            model.registerUser(username, password);
-            JOptionPane.showMessageDialog(registerView.frame, "Usuário registrado com sucesso!");
-            registerView.setVisible(false);
-            loginView.setVisible(true);
-        });
-
-        registerView.addBackListener(e -> {
-            registerView.setVisible(false);
-            loginView.setVisible(true);
-        });
-
         // Gerenciamento de Animais
         animalView.addAnimalListener(e -> {
             String name = animalView.getNameInput();
@@ -125,10 +81,11 @@ public class AnimalController {
 
         animalView.addReportListener(e -> generateReport());
 
-        animalView.addBackListener(e -> {
-            animalView.setVisible(false);
-            menuView.setVisible(true);
-        });
+        // O listener de "Voltar" será gerenciado pelo MenuController
+        // animalView.addBackListener(e -> {
+        //     animalView.setVisible(false);
+        //     menuView.setVisible(true);
+        // });
     }
 
     public void updateAnimalArea() {
@@ -150,6 +107,17 @@ public class AnimalController {
     }
 
     public void generateReport() {
+        String reportContent = getReportAsString(); // Obter o relatório como string
+        if (!reportContent.isEmpty()) {
+            reportView.setReport(reportContent);
+            reportView.setVisible(true);
+        } else {
+            JOptionPane.showMessageDialog(null, "Nenhum animal encontrado para gerar o relatório.", "Aviso", JOptionPane.WARNING_MESSAGE);
+        }
+    }
+
+    // Novo método para retornar o relatório como String
+    public String getReportAsString() {
         StringBuilder report = new StringBuilder();
         try {
             ResultSet resultSet = model.generateReport();
@@ -164,13 +132,36 @@ public class AnimalController {
                             .append("\n");
                 }
                 report.append("\n=== TOTAL DE ANIMAIS: ").append(count).append(" ===");
-                reportView.setReport(report.toString());
-                reportView.setVisible(true);
-            } else {
-                JOptionPane.showMessageDialog(null, "Nenhum animal encontrado para gerar o relatório.", "Aviso", JOptionPane.WARNING_MESSAGE);
             }
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(null, "Erro ao gerar relatório: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+            System.err.println("Erro ao gerar relatório de animais (string): " + e.getMessage());
+            return "Erro ao gerar relatório de animais.";
         }
+        return report.toString();
+    }
+
+    // Métodos CRUD adicionados para serem chamados pelo MenuController (se necessário)
+    // No entanto, a AnimalView já tem listeners para isso, então o MenuController
+    // apenas precisa mostrar a AnimalView.
+    public void createAnimal() {
+        // A lógica já está no addAnimalListener
+        animalView.addAnimalListener(null); // Apenas para fins de exemplo, não deve ser chamado assim
+    }
+
+    public void editAnimal() {
+        // A lógica já está no addUpdateListener
+    }
+
+    public void deleteAnimal() {
+        // A lógica já está no addRemoveListener
+    }
+
+    public void listAnimals() {
+        updateAnimalArea();
+    }
+
+    public void searchAnimal() {
+        // Implementar lógica de busca se necessário
+        JOptionPane.showMessageDialog(animalView.frame, "Funcionalidade de busca de animal não implementada.", "Aviso", JOptionPane.INFORMATION_MESSAGE);
     }
 }

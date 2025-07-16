@@ -8,19 +8,23 @@ import view.ReportView;
 import javax.swing.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
 public class CuidadorController {
     private CuidadorModel model;
-    private CuidadorView CuidadorView;
+    private CuidadorView cuidadorView;
     private MenuView menuView;
     private ReportView reportView;
 
-    public CuidadorController(CuidadorModel model, CuidadorView CuidadorView, ReportView reportView) {
+    public CuidadorController(CuidadorModel model, CuidadorView cuidadorView, ReportView reportView) {
         this.model = model;
-        this.CuidadorView = CuidadorView;
+        this.cuidadorView = cuidadorView;
         this.reportView = reportView;
         setupListeners();
     }
@@ -30,60 +34,73 @@ public class CuidadorController {
     }
 
     private void setupListeners() {
-        CuidadorView.addCuidadorListener(e -> addCuidador());
-        CuidadorView.addUpdateListener(e -> updateCuidador());
-        CuidadorView.addRemoveListener(e -> removeCuidador());
-        CuidadorView.addReportListener(e -> generateReport());
-        CuidadorView.addBackListener(e -> {
-            CuidadorView.setVisible(false);
+        cuidadorView.addCreateCuidadorListener(e -> createCuidador());
+        cuidadorView.addEditCuidadorListener(e -> editCuidador());
+        cuidadorView.addDeleteCuidadorListener(e -> deleteCuidador());
+        cuidadorView.addReportListener(e -> generateReport());
+        cuidadorView.addBackToMenuListener(e -> {
+            cuidadorView.setVisible(false);
             if (menuView != null) {
                 menuView.setVisible(true);
             }
         });
     }
 
-    private void addCuidador() {
-        String name = CuidadorView.getNameInput();
-        String cpf = CuidadorView.getCpfInput();
-        String phone = CuidadorView.getPhoneInput();
-        String email = CuidadorView.getEmailInput();
-        String specialization = CuidadorView.getSpecializationInput();
-        String hireDate = CuidadorView.getHireDateInput();
-        String salaryStr = CuidadorView.getSalaryInput();
+    public void createCuidador() {
+        cuidadorView.clearForm();
+        JPanel formPanel = cuidadorView.createFormPanel("Criar Novo Cuidador", false);
+        int result = JOptionPane.showConfirmDialog(cuidadorView, formPanel, "Criar Cuidador",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+        if (result == JOptionPane.OK_OPTION) {
+            addCuidadorLogic();
+        }
+    }
+
+    private void addCuidadorLogic() {
+        String name = cuidadorView.getNome();
+        String cpf = cuidadorView.getCpf();
+        String phone = cuidadorView.getTelefone();
+        String email = cuidadorView.getEmail();
+        String specialization = cuidadorView.getEspecialidade();
+        String hireDateStr = cuidadorView.getDataContratacao();
+        String salaryStr = cuidadorView.getSalario();
 
         // Validações
-        if (name.trim().isEmpty() || cpf.trim().isEmpty() || hireDate.trim().isEmpty()) {
-            JOptionPane.showMessageDialog(CuidadorView.frame,
-                    "Nome, CPF e Data de Contratação são obrigatórios!",
-                    "Erro", JOptionPane.ERROR_MESSAGE);
+        if (name.trim().isEmpty() || cpf.trim().isEmpty() || hireDateStr.trim().isEmpty()) {
+            cuidadorView.showError("Nome, CPF e Data de Contratação são obrigatórios!");
             return;
         }
 
         if (!isValidCPF(cpf)) {
-            JOptionPane.showMessageDialog(CuidadorView.frame,
-                    "CPF deve conter 11 dígitos!",
-                    "Erro", JOptionPane.ERROR_MESSAGE);
+            cuidadorView.showError("CPF deve conter 11 dígitos numéricos!");
             return;
         }
 
-        if (model.cpfExists(cpf)) {
-            JOptionPane.showMessageDialog(CuidadorView.frame,
-                    "CPF já cadastrado!",
-                    "Erro", JOptionPane.ERROR_MESSAGE);
+        try {
+            if (model.cpfExists(cpf)) {
+                cuidadorView.showError("CPF já cadastrado!");
+                return;
+            }
+        } catch (SQLException e) {
+            cuidadorView.showError("Erro ao verificar CPF: " + e.getMessage());
             return;
         }
 
+        LocalDate hireDate = null;
+        try {
+            hireDate = LocalDate.parse(hireDateStr, CuidadorModel.DATE_FORMATTER);
+        } catch (DateTimeParseException e) {
+            cuidadorView.showError("Data de Contratação deve estar no formato DD/MM/YYYY!");
+            return;
+        }
         if (!isValidDate(hireDate)) {
-            JOptionPane.showMessageDialog(CuidadorView.frame,
-                    "Data deve estar no formato YYYY-MM-DD!",
-                    "Erro", JOptionPane.ERROR_MESSAGE);
+            cuidadorView.showError("Data de Contratação não pode ser futura!");
             return;
         }
 
         if (!email.trim().isEmpty() && !isValidEmail(email)) {
-            JOptionPane.showMessageDialog(CuidadorView.frame,
-                    "Email inválido!",
-                    "Erro", JOptionPane.ERROR_MESSAGE);
+            cuidadorView.showError("Email inválido!");
             return;
         }
 
@@ -92,142 +109,226 @@ public class CuidadorController {
             try {
                 salary = Double.parseDouble(salaryStr.replace(",", "."));
             } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(CuidadorView.frame,
-                        "Salário deve ser um número válido!",
-                        "Erro", JOptionPane.ERROR_MESSAGE);
+                cuidadorView.showError("Salário deve ser um número válido!");
                 return;
             }
         }
 
         try {
-            model.addCuidador(name, cpf, phone, email, specialization, hireDate, salary);
+            CuidadorModel newCuidador = new CuidadorModel(name, cpf, phone, email, specialization, salary, hireDate);
+            model.addCuidador(newCuidador);
+            cuidadorView.showMessage("Cuidador adicionado com sucesso!");
             updateCuidadorArea();
-            CuidadorView.clearFields();
-            JOptionPane.showMessageDialog(CuidadorView.frame, "Cuidador adicionado com sucesso!");
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(CuidadorView.frame,
-                    "Erro ao adicionar cuidador: " + e.getMessage(),
-                    "Erro", JOptionPane.ERROR_MESSAGE);
+            cuidadorView.clearFields();
+        } catch (SQLException e) {
+            cuidadorView.showError("Erro ao adicionar cuidador: " + e.getMessage());
         }
     }
 
-    private void updateCuidador() {
+    public void editCuidador() {
+        String idStr = JOptionPane.showInputDialog(cuidadorView, "Digite o ID do cuidador a ser editado:");
+        if (idStr == null || idStr.trim().isEmpty()) {
+            return;
+        }
+
         try {
-            int id = Integer.parseInt(CuidadorView.getIdInput());
-            String name = CuidadorView.getNameInput();
-            String cpf = CuidadorView.getCpfInput();
-            String phone = CuidadorView.getPhoneInput();
-            String email = CuidadorView.getEmailInput();
-            String specialization = CuidadorView.getSpecializationInput();
-            String hireDate = CuidadorView.getHireDateInput();
-            String salaryStr = CuidadorView.getSalaryInput();
-
-            // Validações
-            if (name.trim().isEmpty() || cpf.trim().isEmpty() || hireDate.trim().isEmpty()) {
-                JOptionPane.showMessageDialog(CuidadorView.frame,
-                        "Nome, CPF e Data de Contratação são obrigatórios!",
-                        "Erro", JOptionPane.ERROR_MESSAGE);
+            int id = Integer.parseInt(idStr);
+            CuidadorModel existingCuidador = model.getCuidadorById(id);
+            if (existingCuidador == null) {
+                cuidadorView.showError("Cuidador com ID " + id + " não encontrado.");
                 return;
             }
 
-            if (!isValidCPF(cpf)) {
-                JOptionPane.showMessageDialog(CuidadorView.frame,
-                        "CPF deve conter 11 dígitos!",
-                        "Erro", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
+            cuidadorView.setFormData(
+                    String.valueOf(existingCuidador.getId()),
+                    existingCuidador.getNome(),
+                    existingCuidador.getCpf(),
+                    existingCuidador.getTelefone(),
+                    existingCuidador.getEmail(),
+                    existingCuidador.getEspecialidade(),
+                    String.valueOf(existingCuidador.getSalario()),
+                    existingCuidador.getDataContratacaoFormatada()
+            );
 
-            if (model.cpfExistsForOtherCuidador(cpf, id)) {
-                JOptionPane.showMessageDialog(CuidadorView.frame,
-                        "CPF já cadastrado para outro cuidador!",
-                        "Erro", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
+            JPanel formPanel = cuidadorView.createFormPanel("Editar Cuidador", true);
+            int result = JOptionPane.showConfirmDialog(cuidadorView, formPanel, "Editar Cuidador",
+                    JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
-            if (!isValidDate(hireDate)) {
-                JOptionPane.showMessageDialog(CuidadorView.frame,
-                        "Data deve estar no formato YYYY-MM-DD!",
-                        "Erro", JOptionPane.ERROR_MESSAGE);
-                return;
+            if (result == JOptionPane.OK_OPTION) {
+                updateCuidadorLogic(id);
             }
-
-            if (!email.trim().isEmpty() && !isValidEmail(email)) {
-                JOptionPane.showMessageDialog(CuidadorView.frame,
-                        "Email inválido!",
-                        "Erro", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            double salary = 0.0;
-            if (!salaryStr.trim().isEmpty()) {
-                try {
-                    salary = Double.parseDouble(salaryStr.replace(",", "."));
-                } catch (NumberFormatException e) {
-                    JOptionPane.showMessageDialog(CuidadorView.frame,
-                            "Salário deve ser um número válido!",
-                            "Erro", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-            }
-
-            model.updateCuidador(id, name, cpf, phone, email, specialization, hireDate, salary);
-            updateCuidadorArea();
-            CuidadorView.clearFields();
-            JOptionPane.showMessageDialog(CuidadorView.frame, "Cuidador atualizado com sucesso!");
         } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(CuidadorView.frame,
-                    "ID deve ser um número válido!",
-                    "Erro", JOptionPane.ERROR_MESSAGE);
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(CuidadorView.frame,
-                    "Erro ao atualizar cuidador: " + e.getMessage(),
-                    "Erro", JOptionPane.ERROR_MESSAGE);
+            cuidadorView.showError("ID deve ser um número válido!");
+        } catch (SQLException e) {
+            cuidadorView.showError("Erro ao buscar cuidador: " + e.getMessage());
         }
     }
 
-    private void removeCuidador() {
+    private void updateCuidadorLogic(int id) {
+        String name = cuidadorView.getNome();
+        String cpf = cuidadorView.getCpf();
+        String phone = cuidadorView.getTelefone();
+        String email = cuidadorView.getEmail();
+        String specialization = cuidadorView.getEspecialidade();
+        String hireDateStr = cuidadorView.getDataContratacao();
+        String salaryStr = cuidadorView.getSalario();
+
+        // Validações
+        if (name.trim().isEmpty() || cpf.trim().isEmpty() || hireDateStr.trim().isEmpty()) {
+            cuidadorView.showError("Nome, CPF e Data de Contratação são obrigatórios!");
+            return;
+        }
+
+        if (!isValidCPF(cpf)) {
+            cuidadorView.showError("CPF deve conter 11 dígitos numéricos!");
+            return;
+        }
+
         try {
-            int id = Integer.parseInt(CuidadorView.getIdInput());
-            int confirm = JOptionPane.showConfirmDialog(CuidadorView.frame,
-                    "Tem certeza que deseja remover o cuidador com ID " + id + "?",
-                    "Confirmar Remoção", JOptionPane.YES_NO_OPTION);
+            if (model.cpfExistsForOtherCuidador(cpf, id)) {
+                cuidadorView.showError("CPF já cadastrado para outro cuidador!");
+                return;
+            }
+        } catch (SQLException e) {
+            cuidadorView.showError("Erro ao verificar CPF: " + e.getMessage());
+            return;
+        }
+
+        LocalDate hireDate = null;
+        try {
+            hireDate = LocalDate.parse(hireDateStr, CuidadorModel.DATE_FORMATTER);
+        } catch (DateTimeParseException e) {
+            cuidadorView.showError("Data de Contratação deve estar no formato DD/MM/YYYY!");
+            return;
+        }
+        if (!isValidDate(hireDate)) {
+            cuidadorView.showError("Data de Contratação não pode ser futura!");
+            return;
+        }
+
+        if (!email.trim().isEmpty() && !isValidEmail(email)) {
+            cuidadorView.showError("Email inválido!");
+            return;
+        }
+
+        double salary = 0.0;
+        if (!salaryStr.trim().isEmpty()) {
+            try {
+                salary = Double.parseDouble(salaryStr.replace(",", "."));
+            } catch (NumberFormatException e) {
+                cuidadorView.showError("Salário deve ser um número válido!");
+                return;
+            }
+        }
+
+        try {
+            CuidadorModel updatedCuidador = new CuidadorModel(id, name, cpf, phone, email, specialization, salary, hireDate);
+            model.updateCuidador(updatedCuidador);
+            cuidadorView.showMessage("Cuidador atualizado com sucesso!");
+            updateCuidadorArea();
+            cuidadorView.clearFields();
+        } catch (SQLException e) {
+            cuidadorView.showError("Erro ao atualizar cuidador: " + e.getMessage());
+        }
+    }
+
+    public void deleteCuidador() {
+        String idStr = JOptionPane.showInputDialog(cuidadorView, "Digite o ID do cuidador a ser excluído:");
+        if (idStr == null || idStr.trim().isEmpty()) {
+            return;
+        }
+
+        try {
+            int id = Integer.parseInt(idStr);
+            int confirm = cuidadorView.showConfirmDialog("Tem certeza que deseja remover o cuidador com ID " + id + "?");
 
             if (confirm == JOptionPane.YES_OPTION) {
                 model.removeCuidador(id);
+                cuidadorView.showMessage("Cuidador removido com sucesso!");
                 updateCuidadorArea();
-                CuidadorView.clearFields();
-                JOptionPane.showMessageDialog(CuidadorView.frame, "Cuidador removido com sucesso!");
+                cuidadorView.clearFields();
             }
         } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(CuidadorView.frame,
-                    "ID deve ser um número válido!",
-                    "Erro", JOptionPane.ERROR_MESSAGE);
+            cuidadorView.showError("ID deve ser um número válido!");
+        } catch (SQLException e) {
+            cuidadorView.showError("Erro ao remover cuidador: " + e.getMessage());
         }
     }
 
-    private void generateReport() {
+    public void listCuidadors() {
+        updateCuidadorArea();
+    }
+
+    public void searchCuidador() {
+        // Este método não tem mais um botão associado na view, mas pode ser chamado internamente se necessário.
+        // cuidadorView.showSearchForm(); // Removido, pois o botão foi removido
+        String searchTerm = cuidadorView.getSearchText();
+        if (searchTerm.isEmpty()) {
+            cuidadorView.showMessage("Digite um termo para buscar.");
+            return;
+        }
+        cuidadorView.showMessage("Buscando por: '" + searchTerm + "' (Funcionalidade de busca não implementada no model).");
+    }
+
+    public void assignAnimalToCuidador() {
+        // Este método não tem mais um botão associado na view, mas pode ser chamado internamente se necessário.
+        // cuidadorView.showAssignAnimalForm(); // Removido, pois o botão foi removido
+        String selectedCuidador = cuidadorView.getSelectedCuidador();
+        String selectedAnimal = cuidadorView.getSelectedAnimal();
+
+        if (selectedCuidador == null || selectedAnimal == null) {
+            cuidadorView.showError("Selecione um cuidador e um animal.");
+            return;
+        }
+        cuidadorView.showMessage("Animal '" + selectedAnimal + "' atribuído ao cuidador '" + selectedCuidador + "' (Simulado).");
+    }
+
+    public void unassignAnimalFromCuidador() {
+        // Este método não tem mais um botão associado na view, mas pode ser chamado internamente se necessário.
+        // cuidadorView.showUnassignAnimalForm(); // Removido, pois o botão foi removido
+        String selectedCuidador = cuidadorView.getSelectedCuidador();
+        String selectedAnimal = cuidadorView.getSelectedAnimal();
+
+        if (selectedCuidador == null || selectedAnimal == null) {
+            cuidadorView.showError("Selecione um cuidador e um animal.");
+            return;
+        }
+        cuidadorView.showMessage("Animal '" + selectedAnimal + "' desatribuído do cuidador '" + selectedCuidador + "' (Simulado).");
+    }
+
+    public void generateReport() {
+        String reportContent = getReportAsString();
+        if (!reportContent.isEmpty()) {
+            reportView.setReport(reportContent);
+            reportView.setVisible(true);
+        } else {
+            reportView.showMessage("Nenhum cuidador encontrado para gerar o relatório.");
+        }
+    }
+
+    public String getReportAsString() {
         StringBuilder report = new StringBuilder();
         NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
 
         try {
-            ResultSet resultSet = model.generateCuidadorReport();
-            if (resultSet != null) {
+            List<CuidadorModel> cuidadores = model.getAllCuidadors();
+            if (!cuidadores.isEmpty()) {
                 report.append("=== RELATÓRIO DE CUIDADORES ===\n\n");
                 int count = 0;
                 double totalSalary = 0.0;
 
-                while (resultSet.next()) {
+                for (CuidadorModel cuidador : cuidadores) {
                     count++;
-                    double salary = resultSet.getDouble("salary");
+                    double salary = cuidador.getSalario();
                     totalSalary += salary;
 
-                    report.append("ID: ").append(resultSet.getInt("id")).append("\n");
-                    report.append("Nome: ").append(resultSet.getString("name")).append("\n");
-                    report.append("CPF: ").append(resultSet.getString("cpf")).append("\n");
-                    report.append("Telefone: ").append(resultSet.getString("phone")).append("\n");
-                    report.append("Email: ").append(resultSet.getString("email")).append("\n");
-                    report.append("Especialização: ").append(resultSet.getString("specialization")).append("\n");
-                    report.append("Data de Contratação: ").append(resultSet.getString("hire_date")).append("\n");
+                    report.append("ID: ").append(cuidador.getId()).append("\n");
+                    report.append("Nome: ").append(cuidador.getNome()).append("\n");
+                    report.append("CPF: ").append(cuidador.getCpfFormatado()).append("\n"); // Adicionado CPF
+                    report.append("Telefone: ").append(cuidador.getTelefoneFormatado()).append("\n"); // Adicionado Telefone
+                    report.append("Email: ").append(cuidador.getEmail()).append("\n");
+                    report.append("Especialização: ").append(cuidador.getEspecialidade()).append("\n");
+                    report.append("Data de Contratação: ").append(cuidador.getDataContratacaoFormatada()).append("\n");
                     report.append("Salário: ").append(currencyFormat.format(salary)).append("\n");
                     report.append("----------------------------------------\n");
                 }
@@ -235,55 +336,48 @@ public class CuidadorController {
                 report.append("\n=== RESUMO ===\n");
                 report.append("Total de Cuidadores: ").append(count).append("\n");
                 report.append("Folha de Pagamento Total: ").append(currencyFormat.format(totalSalary));
-
-                reportView.setReport(report.toString());
-                reportView.setVisible(true);
-            } else {
-                JOptionPane.showMessageDialog(null,
-                        "Nenhum cuidador encontrado para gerar o relatório.",
-                        "Aviso", JOptionPane.WARNING_MESSAGE);
             }
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(null,
-                    "Erro ao gerar relatório: " + e.getMessage(),
-                    "Erro", JOptionPane.ERROR_MESSAGE);
+            cuidadorView.showError("Erro ao gerar relatório de cuidadores: " + e.getMessage());
+            return "Erro ao gerar relatório.";
         }
+        return report.toString();
     }
 
     public void updateCuidadorArea() {
-        StringBuilder Cuidadors = new StringBuilder();
+        StringBuilder cuidadoresText = new StringBuilder();
         NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
 
         try {
-            ResultSet resultSet = model.getCuidador();
-            if (resultSet != null) {
-                while (resultSet.next()) {
-                    Cuidadors.append("ID: ").append(resultSet.getInt("id"));
-                    Cuidadors.append(" | Nome: ").append(resultSet.getString("name"));
-                    Cuidadors.append(" | CPF: ").append(resultSet.getString("cpf"));
-                    Cuidadors.append(" | Telefone: ").append(resultSet.getString("phone"));
-                    Cuidadors.append(" | Email: ").append(resultSet.getString("email"));
-                    Cuidadors.append(" | Especialização: ").append(resultSet.getString("specialization"));
-                    Cuidadors.append(" | Data Contratação: ").append(resultSet.getString("hire_date"));
-                    Cuidadors.append(" | Salário: ").append(currencyFormat.format(resultSet.getDouble("salary")));
-                    Cuidadors.append("\n");
+            List<CuidadorModel> cuidadores = model.getAllCuidadors();
+            if (!cuidadores.isEmpty()) {
+                for (CuidadorModel cuidador : cuidadores) {
+                    cuidadoresText.append("ID: ").append(cuidador.getId());
+                    cuidadoresText.append(" | Nome: ").append(cuidador.getNome());
+                    cuidadoresText.append(" | CPF: ").append(cuidador.getCpfFormatado()); // Adicionado CPF
+                    cuidadoresText.append(" | Telefone: ").append(cuidador.getTelefoneFormatado()); // Adicionado Telefone
+                    cuidadoresText.append(" | Email: ").append(cuidador.getEmail());
+                    cuidadoresText.append(" | Especialização: ").append(cuidador.getEspecialidade());
+                    cuidadoresText.append(" | Data Contratação: ").append(cuidador.getDataContratacaoFormatada());
+                    cuidadoresText.append(" | Salário: ").append(currencyFormat.format(cuidador.getSalario()));
+                    cuidadoresText.append("\n");
                 }
-                CuidadorView.setCuidadorArea(Cuidadors.toString());
+                cuidadorView.displayText(cuidadoresText.toString());
+            } else {
+                cuidadorView.displayText("Nenhum cuidador cadastrado.");
             }
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(CuidadorView.frame,
-                    "Erro ao carregar cuidadores: " + e.getMessage(),
-                    "Erro", JOptionPane.ERROR_MESSAGE);
+            cuidadorView.showError("Erro ao carregar cuidadores: " + e.getMessage());
         }
     }
 
-    // Métodos de validação
     private boolean isValidCPF(String cpf) {
-        return cpf.matches("\\d{11}");
+        String cleanCpf = cpf.replaceAll("[^0-9]", "");
+        return cleanCpf.matches("\\d{11}");
     }
 
-    private boolean isValidDate(String date) {
-        return date.matches("\\d{4}-\\d{2}-\\d{2}");
+    private boolean isValidDate(LocalDate date) {
+        return date != null && !date.isAfter(LocalDate.now());
     }
 
     private boolean isValidEmail(String email) {

@@ -1,134 +1,104 @@
 package controller;
 import view.*;
+import model.*; // Importar modelos para acesso a métodos de autenticação e relatórios
+
+import javax.swing.JOptionPane; // Para showConfirmDialog
 
 public class MenuController {
     private MenuView menuView;
     private AnimalView animalView;
     private UserView userView;
-    private CuidadorView CuidadorView; // Nova view
+    private CuidadorView cuidadorView;
     private ReportView reportView;
     private LoginView loginView;
+
     private AnimalController animalController;
     private UserController userController;
-    private CuidadorController CuidadorController; // Novo controller
+    private CuidadorController cuidadorController;
 
+    // Construtor ajustado para receber todos os controladores necessários
     public MenuController(MenuView menuView, AnimalView animalView, UserView userView,
-                          CuidadorView CuidadorView, ReportView reportView, LoginView loginView,
+                          CuidadorView cuidadorView, ReportView reportView, LoginView loginView,
                           AnimalController animalController, UserController userController,
-                          CuidadorController CuidadorController) {
+                          CuidadorController cuidadorController) {
         this.menuView = menuView;
         this.animalView = animalView;
         this.userView = userView;
-        this.CuidadorView = CuidadorView; // Inicializar nova view
-        this.reportView = reportView;
+        this.cuidadorView = cuidadorView;
         this.loginView = loginView;
         this.animalController = animalController;
         this.userController = userController;
-        this.CuidadorController = CuidadorController; // Inicializar novo controller
+        this.cuidadorController = cuidadorController;
         setupListeners();
     }
 
     private void setupListeners() {
         // Listeners para MenuView
-        menuView.addAnimalMenuListener(e -> showAnimalMenu());
-        menuView.addUserMenuListener(e -> showUserMenu());
-        menuView.addCuidadorMenuListener(e -> showCuidadorMenu());
-        menuView.addReportMenuListener(e -> showReportMenu());
-        menuView.addLogoutListener(e -> logout());
+        menuView.addAnimalButtonListener(e -> showAnimalMenu());
+        menuView.addUserButtonListener(e -> showUserMenu());
+        menuView.addCuidadorButtonListener(e -> showCuidadorMenu());
+        menuView.addLogoutButtonListener(e -> logout());
+
         menuView.addExitListener(e -> exitApplication());
 
-        // Listeners para AnimalView
-        animalView.addBackToMenuListener(e -> showMainMenu());
-        animalView.addCreateAnimalListener(e -> animalController.createAnimal());
-        animalView.addEditAnimalListener(e -> animalController.editAnimal());
-        animalView.addDeleteAnimalListener(e -> animalController.deleteAnimal());
-        animalView.addListAnimalsListener(e -> animalController.listAnimals());
-        animalView.addSearchAnimalListener(e -> animalController.searchAnimal());
 
-        // Listeners para UserView
-        userView.addBackToMenuListener(e -> showMainMenu());
-        userView.addCreateUserListener(e -> userController.createUser());
-        userView.addEditUserListener(e -> userController.editUser());
-        userView.addDeleteUserListener(e -> userController.deleteUser());
-        userView.addListUsersListener(e -> userController.listUsers());
-        userView.addSearchUserListener(e -> userController.searchUser());
+        animalView.addBackListener(e -> showMainMenu());
+
+        userView.addBackListener(e -> showMainMenu());
 
         // Listeners para CuidadorView
-        CuidadorView.addBackToMenuListener(e -> showMainMenu());
-        CuidadorView.addCreateCuidadorListener(e -> CuidadorController.createCuidador());
-        CuidadorView.addEditCuidadorListener(e -> CuidadorController.editCuidador());
-        CuidadorView.addDeleteCuidadorListener(e -> CuidadorController.deleteCuidador());
-        CuidadorView.addListCuidadorsListener(e -> CuidadorController.listCuidadors());
-        CuidadorView.addSearchCuidadorListener(e -> CuidadorController.searchCuidador());
-        CuidadorView.addAssignAnimalListener(e -> CuidadorController.assignAnimalToCuidador());
-        CuidadorView.addUnassignAnimalListener(e -> CuidadorController.unassignAnimalFromCuidador());
-
-        // Listeners para ReportView
-        reportView.addBackToMenuListener(e -> showMainMenu());
-        reportView.addGenerateAnimalReportListener(e -> generateAnimalReport());
-        reportView.addGenerateUserReportListener(e -> generateUserReport());
-        reportView.addGenerateCuidadorReportListener(e -> generateCuidadorReport());
-        reportView.addGenerateGeneralReportListener(e -> generateGeneralReport());
-        reportView.addExportReportListener(e -> exportReport());
+        cuidadorView.addBackToMenuListener(e -> showMainMenu());
 
         // Listeners para LoginView
         loginView.addLoginListener(e -> performLogin());
+            loginView.setVisible(false);
         loginView.addExitListener(e -> exitApplication());
     }
 
     // Métodos para navegação entre menus
     public void showMainMenu() {
+        hideAllViews();
         menuView.setVisible(true);
-        animalView.setVisible(false);
-        userView.setVisible(false);
-        CuidadorView.setVisible(false);
-        reportView.setVisible(false);
-        loginView.setVisible(false);
     }
 
     public void showAnimalMenu() {
-        menuView.setVisible(false);
+        hideAllViews();
         animalView.setVisible(true);
-        userView.setVisible(false);
-        CuidadorView.setVisible(false);
-        reportView.setVisible(false);
-        loginView.setVisible(false);
+        animalController.updateAnimalArea(); // Atualiza a área de animais ao mostrar a tela
     }
 
     public void showUserMenu() {
-        menuView.setVisible(false);
-        animalView.setVisible(false);
+        hideAllViews();
         userView.setVisible(true);
-        CuidadorView.setVisible(false);
-        reportView.setVisible(false);
-        loginView.setVisible(false);
+        userController.updateUserArea(); // Atualiza a área de usuários ao mostrar a tela
     }
 
     public void showCuidadorMenu() {
-        menuView.setVisible(false);
-        animalView.setVisible(false);
-        userView.setVisible(false);
-        CuidadorView.setVisible(true);
-        reportView.setVisible(false);
-        loginView.setVisible(false);
+        hideAllViews();
+        cuidadorView.setVisible(true);
+        cuidadorController.updateCuidadorArea(); // Atualiza a área de cuidadores ao mostrar a tela
     }
 
     public void showReportMenu() {
-        menuView.setVisible(false);
-        animalView.setVisible(false);
-        userView.setVisible(false);
-        CuidadorView.setVisible(false);
+        hideAllViews();
         reportView.setVisible(true);
-        loginView.setVisible(false);
+        // Ao abrir a tela de relatório, podemos gerar um relatório padrão ou deixar o usuário escolher
+        // generateGeneralReport(); // Opcional: gerar relatório geral ao abrir
     }
 
     public void showLoginMenu() {
+        hideAllViews();
+        loginView.setVisible(true);
+        loginView.clearFields(); // Limpa os campos de login ao voltar
+    }
+
+    // Método auxiliar para ocultar todas as views
+    private void hideAllViews() {
         menuView.setVisible(false);
         animalView.setVisible(false);
         userView.setVisible(false);
-        CuidadorView.setVisible(false);
-        reportView.setVisible(false);
-        loginView.setVisible(true);
+        cuidadorView.setVisible(false);
+        loginView.setVisible(false);
     }
 
     // Métodos para ações específicas
@@ -136,7 +106,9 @@ public class MenuController {
         String username = loginView.getUsername();
         String password = loginView.getPassword();
 
-        if (validateLogin(username, password)) {
+        // A autenticação é feita no UserModel.
+        // O UserController deve ter um método para validar o usuário.
+        if (userController.validateUser(username, password)) {
             loginView.showMessage("Login realizado com sucesso!");
             showMainMenu();
         } else {
@@ -144,65 +116,97 @@ public class MenuController {
         }
     }
 
-    private boolean validateLogin(String username, String password) {
-        // Implementar validação de login
-        // Por exemplo, verificar no banco de dados ou lista de usuários
-        return userController.validateUser(username, password);
-    }
+    // Este método deve ser implementado no UserController
+    // private boolean validateLogin(String username, String password) {
+    //     // Validação com verificação de nulos
+    //     if (username == null || password == null || username.trim().isEmpty() || password.trim().isEmpty()) {
+    //         return false;
+    //     }
+    //     return userController.validateUser(username, password); // Chama o método do UserController
+    // }
 
     private void logout() {
         int confirm = menuView.showConfirmDialog("Tem certeza que deseja sair?");
-        if (confirm == 0) { // 0 = Yes
+        if (confirm == JOptionPane.YES_OPTION) { // 0 = Yes
             showLoginMenu();
         }
     }
 
     private void exitApplication() {
         int confirm = menuView.showConfirmDialog("Tem certeza que deseja encerrar a aplicação?");
-        if (confirm == 0) { // 0 = Yes
+        if (confirm == JOptionPane.YES_OPTION) { // 0 = Yes
             System.exit(0);
         }
     }
 
-    // Métodos para geração de relatórios
-    private void generateAnimalReport() {
+    // Métodos para geração de relatórios (chamados pelos listeners da ReportView)
+    // Estes métodos devem ser chamados por botões na ReportView, não diretamente aqui.
+    // O MenuController apenas orquestra a exibição da ReportView.
+    // A ReportView deve ter listeners para chamar esses métodos nos respectivos controladores.
+    public void generateAnimalReport() {
         try {
-            String report = animalController.generateReport();
-            reportView.displayReport("Relatório de Animais", report);
+            animalController.generateReport(); // O AnimalController já exibe o relatório na ReportView
         } catch (Exception e) {
             reportView.showError("Erro ao gerar relatório de animais: " + e.getMessage());
         }
     }
 
-    private void generateUserReport() {
+    public void generateUserReport() {
         try {
-            String report = userController.generateReport();
-            reportView.displayReport("Relatório de Usuários", report);
+            userController.generateReport(); // O UserController deve ter um método para gerar e exibir o relatório
         } catch (Exception e) {
             reportView.showError("Erro ao gerar relatório de usuários: " + e.getMessage());
         }
     }
 
-    private void generateCuidadorReport() {
+    public void generateCuidadorReport() {
         try {
-            String report = CuidadorController.generateReport();
-            reportView.displayReport("Relatório de Cuidadores", report);
+            cuidadorController.generateReport(); // O CuidadorController já exibe o relatório na ReportView
         } catch (Exception e) {
             reportView.showError("Erro ao gerar relatório de cuidadores: " + e.getMessage());
         }
     }
 
-    private void generateGeneralReport() {
+    public void generateGeneralReport() {
         try {
             StringBuilder generalReport = new StringBuilder();
             generalReport.append("=== RELATÓRIO GERAL DO SISTEMA ===\n\n");
 
+            // Chamar os métodos de geração de relatório de cada controlador
+            // Estes métodos devem retornar a string do relatório para serem concatenados aqui
+            // ou os controladores devem ter um método para "obter" o relatório formatado.
+            // Para simplificar, vamos fazer os controladores retornarem a string do relatório.
+            // NOTA: Os métodos generateReport() nos controladores atuais exibem o relatório diretamente.
+            // Precisamos ajustar isso para que eles retornem a string.
+
+            // Temporariamente, vamos chamar os métodos que já exibem e depois obter o texto da ReportView
+            // Isso não é o ideal, mas funciona com a estrutura atual.
+            // O ideal seria que generateReport() retornasse um String.
+
+            // Opção 1: Se generateReport() nos controllers retornasse String
+            // generalReport.append("--- ANIMAIS ---\n");
+            // generalReport.append(animalController.getFormattedReport()); // Novo método
+            // generalReport.append("\n\n--- USUÁRIOS ---\n");
+            // generalReport.append(userController.getFormattedReport()); // Novo método
+            // generalReport.append("\n\n--- CUIDADORES ---\n");
+            // generalReport.append(cuidadorController.getFormattedReport()); // Novo método
+
+            // Opção 2: Adaptando ao que já existe (menos ideal)
+            // Para o contexto atual, onde generateReport() já exibe,
+            // vamos apenas chamar e depois tentar pegar o texto da ReportView.
+            // Isso é problemático se a ReportView não estiver visível ou se o texto for sobrescrito.
+            // A melhor abordagem é que os controllers retornem a string do relatório.
+
+            // Para este exercício, vamos assumir que os controllers terão um método que retorna a string do relatório.
+            // Isso exigirá modificações nos AnimalController, UserController e CuidadorController.
+
+            // Exemplo de como seria se os controllers retornassem String:
             generalReport.append("--- ANIMAIS ---\n");
-            generalReport.append(animalController.generateReport());
+            generalReport.append(animalController.getReportAsString()); // Método a ser criado
             generalReport.append("\n\n--- USUÁRIOS ---\n");
-            generalReport.append(userController.generateReport());
+            generalReport.append(userController.getReportAsString()); // Método a ser criado
             generalReport.append("\n\n--- CUIDADORES ---\n");
-            generalReport.append(CuidadorController.generateReport());
+            generalReport.append(cuidadorController.getReportAsString()); // Método a ser criado
 
             reportView.displayReport("Relatório Geral", generalReport.toString());
         } catch (Exception e) {
@@ -210,14 +214,16 @@ public class MenuController {
         }
     }
 
-    private void exportReport() {
+    public void exportReport() {
         try {
             String currentReport = reportView.getCurrentReport();
             if (currentReport != null && !currentReport.isEmpty()) {
-                String fileName = reportView.getExportFileName();
-                if (fileName != null && !fileName.isEmpty()) {
+                String fileName = JOptionPane.showInputDialog(reportView.frame, "Digite o nome do arquivo para exportar (ex: relatorio.txt):");
+                if (fileName != null && !fileName.trim().isEmpty()) {
                     exportToFile(currentReport, fileName);
-                    reportView.showMessage("Relatório exportado com sucesso!");
+                    reportView.showMessage("Relatório exportado com sucesso para " + fileName + "!");
+                } else {
+                    reportView.showMessage("Nome do arquivo inválido.");
                 }
             } else {
                 reportView.showError("Nenhum relatório para exportar!");

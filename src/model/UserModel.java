@@ -9,14 +9,14 @@ public class UserModel {
     public UserModel() {
         try {
             connection = DriverManager.getConnection(DB_URL);
-            createUserTable();
+            createUserTable(); // Chama o método que cria a tabela e insere o usuário padrão
         } catch (SQLException e) {
             System.err.println("Erro ao conectar com o banco de dados: " + e.getMessage());
         }
     }
 
     private void createUserTable() {
-        String sql = """
+        String createTableSql = """
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT UNIQUE NOT NULL,
@@ -24,10 +24,23 @@ public class UserModel {
             )
             """;
 
+        String checkUserCountSql = "SELECT COUNT(*) FROM users";
+        String insertDefaultUserSql = "INSERT INTO users (username, password) VALUES ('admin', '123')"; // Usuário padrão: admin, Senha: 123
+
         try (Statement stmt = connection.createStatement()) {
-            stmt.execute(sql);
+            // 1. Garante que a tabela 'users' existe
+            stmt.execute(createTableSql);
+
+            // 2. Verifica se a tabela 'users' está vazia
+            try (ResultSet rs = stmt.executeQuery(checkUserCountSql)) {
+                if (rs.next() && rs.getInt(1) == 0) { // Se o count for 0, a tabela está vazia
+                    // 3. Insere o usuário padrão
+                    stmt.execute(insertDefaultUserSql);
+                    System.out.println("Usuário padrão 'admin' com senha '123' criado com sucesso.");
+                }
+            }
         } catch (SQLException e) {
-            System.err.println("Erro ao criar tabela de usuários: " + e.getMessage());
+            System.err.println("Erro ao criar tabela de usuários ou inserir usuário padrão: " + e.getMessage());
         }
     }
 
