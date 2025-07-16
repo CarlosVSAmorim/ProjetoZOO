@@ -16,7 +16,7 @@ ProjetoZOO é um sistema de gerenciamento de zoológico desenvolvido em Java, ut
 - Visualizar lista de animais cadastrados
 - Gerar relatório de animais
 
-![Tela de Animais](imgs/tela_animais.png)
+![Tela de Animais](https://i.imgur.com/NR5rD62.png)
 
 ### 👤 Gerenciamento de Usuários
 - Registrar novos usuários (username, password)
@@ -26,7 +26,7 @@ ProjetoZOO é um sistema de gerenciamento de zoológico desenvolvido em Java, ut
 - Gerar relatório de usuários
 - Autenticação com usuário padrão `admin` e senha `123`
 
-![Tela de Usuários](imgs/tela_usuarios.png)
+![Tela de Usuários](https://i.imgur.com/T5puz4O.png)
 
 ### 👷 Gerenciamento de Cuidadores
 - Adicionar novos cuidadores (nome, CPF, telefone, email, especialidade, salário, data de contratação)
@@ -36,21 +36,21 @@ ProjetoZOO é um sistema de gerenciamento de zoológico desenvolvido em Java, ut
 - Gerar relatório com resumo da folha de pagamento
 - Validações: CPF, data futura e email
 
-![Tela de Cuidadores](imgs/tela_cuidadores.png)
+![Tela de Cuidadores](https://i.imgur.com/lAtOOif.png)
 
 ### 📑 Relatórios
 - Geração de relatórios específicos para Animais, Usuários e Cuidadores
 - Relatório geral consolidado
 - Exportação dos relatórios para arquivo `.txt`
 
-![Relatório](imgs/tela_relatorio.png)
+![Relatório](https://i.imgur.com/JLgt1Kh.png)
 
 ### 🔁 Navegação
 - Menu principal para acesso às seções de gerenciamento
 - Botões "Voltar ao Menu" em todas as telas
 - Funcionalidade de logout e sair da aplicação
 
-![Menu Principal](imgs/menu_principal.png)
+![Menu Principal](https://i.imgur.com/paQtZrf.png)
 
 ### Estrutura do Projeto
 
